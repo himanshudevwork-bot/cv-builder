@@ -7,6 +7,7 @@ app.secret_key = "cv_builder_secret_key"
 
 cv_data = {}
 current_step = 0
+cv_template = "modern"
 
 def init_db():
     conn = sqlite3.connect("cv.db")
@@ -24,97 +25,324 @@ TEMPLATE = """<!DOCTYPE html>
 <title>Professional CV Builder</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: "Segoe UI", sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; padding: 2rem; }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+body { font-family: 'Poppins', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 50%, #b8c6db 100%); min-height: 100vh; padding: 2rem; transition: all 0.3s ease; }
 .container { max-width: 900px; margin: 0 auto; }
-header { text-align: center; color: white; margin-bottom: 2rem; }
-header h1 { font-size: 2.2rem; font-weight: 300; letter-spacing: 2px; }
-header span { color: #e94560; font-weight: 600; }
-.progress { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
-.step { padding: 0.6rem 1rem; background: rgba(255,255,255,0.1); color: white; border-radius: 20px; font-size: 0.8rem; transition: all 0.3s; }
-.step.active { background: #e94560; transform: scale(1.05); }
-.form-box { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+header { text-align: center; color: #1a365d; margin-bottom: 2rem; }
+header h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(26, 54, 93, 0.1); }
+header span { color: #4a90d9; font-weight: 700; }
+.progress { display: flex; justify-content: center; gap: 0.6rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
+.step { padding: 0.7rem 1.2rem; background: rgba(255,255,255,0.6); color: #4a5568; border-radius: 25px; font-size: 0.85rem; transition: all 0.25s ease; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.step.active { background: linear-gradient(135deg, #4a90d9, #667eea); color: white; transform: scale(1.08); box-shadow: 0 6px 20px rgba(74, 144, 217, 0.5); }
+.form-box { background: white; border-radius: 24px; padding: 3rem; box-shadow: 0 20px 60px rgba(26, 54, 93, 0.12), 0 4px 12px rgba(0,0,0,0.05), 0 0 0 1px rgba(74, 144, 217, 0.05); }
 .form-section { display: none; }
 .form-section.active { display: block; animation: fadeIn 0.4s; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.form-section h3 { color: #1a1a2e; margin-bottom: 1.5rem; border-bottom: 2px solid #e94560; padding-bottom: 0.5rem; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+.form-section h3 { color: #1a365d; margin-bottom: 1.8rem; border-bottom: 3px solid #4a90d9; padding-bottom: 0.8rem; font-size: 1.3rem; display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: 0.5px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
 @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; color: #333; font-size: 0.9rem; }
-.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.7rem; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95rem; transition: border-color 0.3s; }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #e94560; outline: none; }
+.form-group { margin-bottom: 1.4rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2d3748; font-size: 0.9rem; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 1rem 1.2rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 0.95rem; transition: all 0.25s ease; font-family: 'Poppins', sans-serif; background: #fafbfc; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #4a90d9; outline: none; box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.2), 0 4px 12px rgba(74, 144, 217, 0.1); background: white; }
+.form-group input::placeholder, .form-group textarea::placeholder { color: #a0aec0; }
 .form-group textarea { min-height: 90px; resize: vertical; }
-.entry { background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #e94560; }
+.entry { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 1.5rem; border-radius: 14px; margin-bottom: 1.2rem; border-left: 5px solid #4a90d9; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 .photo-area { text-align: center; margin-bottom: 1.5rem; }
-.photo-preview { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #e94560; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-.file-upload { display: inline-block; padding: 0.7rem 1.5rem; background: #0f3460; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.file-upload:hover { background: #16213e; }
+.photo-preview { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 5px solid #4a90d9; box-shadow: 0 8px 25px rgba(74, 144, 217, 0.35), 0 0 0 3px rgba(74, 144, 217, 0.1); transition: all 0.3s ease; }
+.file-upload { display: inline-block; padding: 0.8rem 1.8rem; background: linear-gradient(135deg, #4a90d9, #667eea); color: white; border-radius: 30px; cursor: pointer; font-weight: 600; transition: all 0.25s ease; font-size: 0.9rem; letter-spacing: 0.5px; }
+.file-upload:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 25px rgba(74, 144, 217, 0.5); }
 .file-upload input { display: none; }
-.btns { display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; flex-wrap: wrap; }
-.btn { padding: 0.9rem 1.8rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: all 0.3s; }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-.btn-primary { background: #e94560; color: white; }
-.btn-secondary { background: #0f3460; color: white; }
-.btn-success { background: #27ae60; color: white; }
+.btns { display: flex; justify-content: space-between; margin-top: 2.5rem; gap: 1.2rem; flex-wrap: wrap; }
+.btn { padding: 1rem 2rem; border: none; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.25s ease; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px; }
+.btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.btn-primary { background: linear-gradient(135deg, #4a90d9 0%, #667eea 100%); color: white; }
+.btn-primary:hover { box-shadow: 0 12px 30px rgba(74, 144, 217, 0.45); }
+.btn-secondary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.btn-secondary:hover { box-shadow: 0 12px 30px rgba(102, 126, 234, 0.45); }
+.btn-success { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; }
+.btn-success:hover { box-shadow: 0 12px 30px rgba(72, 187, 120, 0.45); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-add { background: #3498db; color: white; padding: 0.6rem 1.2rem; font-size: 0.85rem; }
+.btn-add { background: linear-gradient(135deg, #4a90d9 0%, #667eea 100%); color: white; padding: 0.7rem 1.4rem; font-size: 0.9rem; border-radius: 25px; }
+.btn-add:hover { box-shadow: 0 8px 20px rgba(74, 144, 217, 0.45); transform: translateY(-2px); }
 
-/* CV Preview - Professional Sidebar Layout */
+/* Template Selector */
+.template-selector { text-align: center; margin-bottom: 1.5rem; }
+.template-selector label { display: block; font-weight: 600; color: #1a365d; margin-bottom: 0.8rem; font-size: 1rem; }
+.template-options { display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; }
+.template-btn { padding: 0.6rem 1.2rem; border: 2px solid #e2e8f0; background: white; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: #4a5568; transition: all 0.25s ease; font-family: 'Poppins', sans-serif; }
+.template-btn:hover { border-color: #4a90d9; color: #4a90d9; }
+.template-btn.active { background: linear-gradient(135deg, #4a90d9, #667eea); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(74, 144, 217, 0.4); }
+
+/* Form Validation */
+.form-group.error input, .form-group.error textarea { border-color: #e53e3e !important; }
+.form-group.error input:focus, .form-group.error textarea:focus { box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2) !important; }
+.error-message { color: #e53e3e; font-size: 0.8rem; margin-top: 4px; display: none; }
+.form-group.error .error-message { display: block; }
+.form-error-banner { background: #fed7d7; border: 1px solid #fc8181; color: #c53030; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center; }
+
+/* ==================== TEMPLATE: MODERN ==================== */
+.template-modern .cv-paper { background: white; max-width: 850px; margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-radius: 8px; overflow: hidden; }
+.template-modern .cv-header { background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: white; padding: 40px 40px 30px; text-align: center; }
+.template-modern .cv-header-name { font-size: 2.5rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+.template-modern .cv-header-title { font-size: 1.1rem; color: #90cdf4; font-weight: 400; margin-bottom: 20px; }
+.template-modern .cv-header-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; font-size: 0.85rem; color: #e2e8f0; }
+.template-modern .cv-header-contact span { display: flex; align-items: center; gap: 6px; }
+.template-modern .cv-body { display: flex; }
+.template-modern .cv-left { width: 280px; background: #f7fafc; padding: 30px 25px; flex-shrink: 0; border-right: 1px solid #e2e8f0; }
+.template-modern .cv-right { flex: 1; padding: 30px 35px; background: white; }
+.template-modern .cv-left-section h3 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #2c5282; margin-bottom: 12px; }
+.template-modern .cv-right-section h2 { font-size: 1.05rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1a365d; margin-bottom: 15px; padding-bottom: 6px; border-bottom: 2px solid #4a90d9; }
+.template-modern .cv-skill-item { display: inline-block; background: white; border: 1px solid #cbd5e0; padding: 5px 12px; border-radius: 4px; font-size: 0.8rem; color: #2d3748; margin: 3px 3px; }
+.template-modern .cv-hobby-item { display: inline-block; background: #2c5282; color: white; padding: 4px 10px; border-radius: 3px; font-size: 0.75rem; margin: 3px 3px; }
+.template-modern .cv-project { background: #f7fafc; padding: 12px 15px; border-radius: 5px; margin-bottom: 12px; border-left: 3px solid #4a90d9; }
+.template-modern .cv-declaration { background: #f7fafc; padding: 15px; border-radius: 5px; border-left: 3px solid #4a90d9; }
+
+/* ==================== TEMPLATE: CLASSIC ==================== */
+.template-classic .cv-paper { background: white; max-width: 850px; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+.template-classic .cv-header { background: #2c3e50; color: white; padding: 30px 40px; text-align: center; border-bottom: 4px solid #3498db; }
+.template-classic .cv-header-name { font-size: 2.2rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+.template-classic .cv-header-title { font-size: 1rem; color: #bdc3c7; font-weight: 400; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+.template-classic .cv-header-contact { display: flex; justify-content: center; gap: 25px; font-size: 0.8rem; color: #ecf0f1; }
+.template-classic .cv-header-contact span { display: flex; align-items: center; gap: 5px; }
+.template-classic .cv-body { display: flex; }
+.template-classic .cv-left { width: 220px; background: #ecf0f1; padding: 25px 20px; flex-shrink: 0; }
+.template-classic .cv-right { flex: 1; padding: 25px 30px; }
+.template-classic .cv-left-section { margin-bottom: 20px; }
+.template-classic .cv-left-section h3 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #2c3e50; margin-bottom: 10px; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }
+.template-classic .cv-right-section { margin-bottom: 20px; }
+.template-classic .cv-right-section h2 { font-size: 1rem; font-weight: 700; text-transform: uppercase; color: #2c3e50; margin-bottom: 12px; border-bottom: 1px solid #3498db; padding-bottom: 4px; }
+.template-classic .cv-skill-item { display: block; background: white; padding: 4px 8px; border-radius: 3px; font-size: 0.75rem; color: #2c3e50; margin: 4px 0; border-left: 3px solid #3498db; }
+.template-classic .cv-hobby-item { display: block; background: #2c3e50; color: white; padding: 4px 8px; border-radius: 3px; font-size: 0.7rem; margin: 4px 0; }
+.template-classic .cv-project { background: #ecf0f1; padding: 10px; margin-bottom: 10px; border: 1px solid #bdc3c7; }
+.template-classic .cv-declaration { background: #ecf0f1; padding: 12px; border: 1px solid #bdc3c7; }
+
+/* ==================== TEMPLATE: MINIMAL ==================== */
+.template-minimal .cv-paper { background: white; max-width: 800px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+.template-minimal .cv-header { background: white; color: #111; padding: 40px 40px 20px; text-align: center; border-bottom: 2px solid #111; }
+.template-minimal .cv-header-name { font-size: 2.4rem; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 5px; }
+.template-minimal .cv-header-title { font-size: 0.9rem; color: #666; font-weight: 400; margin-bottom: 15px; }
+.template-minimal .cv-header-contact { display: flex; justify-content: center; gap: 20px; font-size: 0.8rem; color: #333; }
+.template-minimal .cv-header-contact span { display: flex; align-items: center; gap: 5px; }
+.template-minimal .cv-body { display: flex; }
+.template-minimal .cv-left { width: 200px; padding: 25px 20px; flex-shrink: 0; }
+.template-minimal .cv-right { flex: 1; padding: 25px 30px; }
+.template-minimal .cv-left-section { margin-bottom: 20px; }
+.template-minimal .cv-left-section h3 { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #111; margin-bottom: 8px; letter-spacing: 2px; }
+.template-minimal .cv-right-section { margin-bottom: 18px; }
+.template-minimal .cv-right-section h2 { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: #111; margin-bottom: 10px; letter-spacing: 1px; }
+.template-minimal .cv-skill-item { display: inline-block; background: #f5f5f5; padding: 3px 10px; font-size: 0.75rem; color: #333; margin: 2px; }
+.template-minimal .cv-hobby-item { display: inline-block; background: #111; color: white; padding: 3px 10px; font-size: 0.7rem; margin: 2px; }
+.template-minimal .cv-project { padding: 8px 0; margin-bottom: 10px; border-bottom: 1px solid #eee; }
+.template-minimal .cv-declaration { padding: 10px 0; border-left: none; border-bottom: 1px solid #eee; }
+
+/* ==================== TEMPLATE: ELEGANT ==================== */
+.template-elegant .cv-paper { background: white; max-width: 850px; margin: 0 auto; box-shadow: 0 15px 50px rgba(0,0,0,0.12); border-radius: 4px; overflow: hidden; }
+.template-elegant .cv-header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; padding: 50px 50px 40px; text-align: center; }
+.template-elegant .cv-header-name { font-size: 2.8rem; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; font-family: 'Georgia', serif; }
+.template-elegant .cv-header-title { font-size: 1rem; color: #e94560; font-weight: 400; margin-bottom: 25px; letter-spacing: 2px; text-transform: uppercase; }
+.template-elegant .cv-header-contact { display: flex; justify-content: center; gap: 25px; font-size: 0.8rem; color: #ccc; }
+.template-elegant .cv-header-contact span { display: flex; align-items: center; gap: 6px; }
+.template-elegant .cv-body { display: flex; }
+.template-elegant .cv-left { width: 260px; background: #fafafa; padding: 30px 25px; flex-shrink: 0; border-right: 1px solid #e0e0e0; }
+.template-elegant .cv-right { flex: 1; padding: 30px 35px; background: white; }
+.template-elegant .cv-left-section { margin-bottom: 25px; }
+.template-elegant .cv-left-section h3 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #1a1a2e; margin-bottom: 12px; letter-spacing: 2px; border-bottom: 2px solid #e94560; padding-bottom: 6px; }
+.template-elegant .cv-right-section { margin-bottom: 22px; }
+.template-elegant .cv-right-section h2 { font-size: 1rem; font-weight: 600; text-transform: uppercase; color: #1a1a2e; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 2px solid #e94560; padding-bottom: 5px; }
+.template-elegant .cv-skill-item { display: inline-block; background: white; border: 1px solid #ddd; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; color: #333; margin: 3px; }
+.template-elegant .cv-hobby-item { display: inline-block; background: #1a1a2e; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; margin: 3px; }
+.template-elegant .cv-project { background: #fafafa; padding: 12px 15px; margin-bottom: 12px; border-left: 3px solid #e94560; }
+.template-elegant .cv-declaration { background: #fafafa; padding: 15px; border-left: 3px solid #e94560; }
+
+/* CV Preview - Modern Professional Resume */
 .preview { display: none; margin-top: 2rem; }
 .preview.active { display: block; }
-.cv-paper { background: white; max-width: 850px; margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-.cv-container { display: flex; min-height: 1100px; }
-.cv-sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%); color: white; width: 260px; padding: 30px 20px; flex-shrink: 0; }
-.cv-main { flex: 1; padding: 35px; background: #fafafa; }
-.cv-sidebar-photo { text-align: center; margin-bottom: 25px; }
-.cv-sidebar-photo img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); object-fit: cover; }
-.cv-sidebar-name { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 5px; letter-spacing: 1px; }
-.cv-sidebar-title { font-size: 0.95rem; text-align: center; color: #e94560; margin-bottom: 25px; font-weight: 300; }
-.cv-sidebar-section { margin-bottom: 25px; }
-.cv-sidebar-section h4 { color: #e94560; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px; }
-.cv-sidebar-contact { font-size: 0.8rem; line-height: 1.7; }
-.cv-sidebar-contact span { display: block; }
-.cv-sidebar-contact .label { color: #aaa; margin-right: 6px; }
-.cv-sidebar-skills { display: flex; flex-wrap: wrap; gap: 6px; }
-.cv-sidebar-skill { background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 15px; font-size: 0.75rem; }
-.cv-main-name { font-size: 2.2rem; color: #1a1a2e; font-weight: 700; margin-bottom: 3px; }
-.cv-main-title { font-size: 1.1rem; color: #e94560; margin-bottom: 20px; font-weight: 300; }
-.cv-section { margin-bottom: 25px; }
-.cv-section h2 { color: #1a1a2e; border-bottom: 2px solid #e94560; padding-bottom: 6px; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
-.cv-entry { margin-bottom: 15px; padding-left: 12px; border-left: 3px solid #e94560; }
-.cv-entry-title { font-weight: bold; color: #333; font-size: 1rem; }
-.cv-entry-sub { color: #666; font-style: italic; }
-.cv-entry-date { color: #888; font-size: 0.85rem; margin-bottom: 6px; }
-.cv-entry-desc { color: #555; line-height: 1.5; font-size: 0.9rem; }
-.cv-skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.cv-skill-tag { background: white; border: 1px solid #ddd; padding: 6px 14px; border-radius: 20px; color: #333; font-size: 0.85rem; }
-.cv-project { background: white; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #e94560; }
-.cv-project-title { font-weight: bold; color: #1a1a2e; }
-.cv-project-tech { color: #e94560; font-size: 0.8rem; margin: 4px 0; }
-.cv-project-desc { color: #555; font-size: 0.9rem; }
-.cv-cert-item, .cv-achievement-item { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.cv-cert-name { font-weight: 600; color: #333; }
-.cv-cert-date { color: #888; font-size: 0.85rem; }
-.cv-hobbies { display: flex; flex-wrap: wrap; gap: 8px; }
-.cv-hobby { background: #1a1a2e; color: white; padding: 6px 14px; border-radius: 15px; font-size: 0.8rem; }
-.cv-lang-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
-.cv-family-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.cv-family-item { background: #f5f5f5; padding: 10px; border-radius: 6px; }
-.cv-family-label { font-weight: bold; color: #1a1a2e; font-size: 0.85rem; }
-.cv-family-value { color: #555; font-size: 0.9rem; }
-.cv-declaration { background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 3px solid #e94560; font-size: 0.9rem; color: #555; line-height: 1.6; }
+.cv-paper { background: white; max-width: 850px; margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-radius: 8px; overflow: hidden; }
+.cv-header { background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: white; padding: 40px 40px 30px; text-align: center; }
+.cv-header-name { font-size: 2.5rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+.cv-header-title { font-size: 1.1rem; color: #90cdf4; font-weight: 400; margin-bottom: 20px; }
+.cv-header-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; font-size: 0.85rem; color: #e2e8f0; }
+.cv-header-contact span { display: flex; align-items: center; gap: 6px; }
+.cv-body { display: flex; }
+.cv-left { width: 280px; background: #f7fafc; padding: 30px 25px; flex-shrink: 0; border-right: 1px solid #e2e8f0; }
+.cv-right { flex: 1; padding: 30px 35px; background: white; }
+.cv-section-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #1a365d; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #4a90d9; }
+.cv-left-section { margin-bottom: 30px; }
+.cv-left-section h3 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #2c5282; margin-bottom: 12px; }
+.cv-contact-item { font-size: 0.8rem; color: #4a5568; margin-bottom: 8px; word-break: break-all; }
+.cv-skill-item { display: inline-block; background: white; border: 1px solid #cbd5e0; padding: 5px 12px; border-radius: 4px; font-size: 0.8rem; color: #2d3748; margin: 3px 3px; }
+.cv-lang-item { font-size: 0.85rem; color: #4a5568; padding: 4px 0; border-bottom: 1px solid #e2e8f0; }
+.cv-hobby-item { display: inline-block; background: #2c5282; color: white; padding: 4px 10px; border-radius: 3px; font-size: 0.75rem; margin: 3px 3px; }
+.cv-right-section { margin-bottom: 28px; }
+.cv-right-section h2 { font-size: 1.05rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1a365d; margin-bottom: 15px; padding-bottom: 6px; border-bottom: 2px solid #4a90d9; }
+.cv-entry { margin-bottom: 18px; }
+.cv-entry-title { font-weight: 700; color: #1a202c; font-size: 0.95rem; }
+.cv-entry-sub { color: #4a5568; font-size: 0.9rem; }
+.cv-entry-date { color: #718096; font-size: 0.8rem; margin-bottom: 6px; }
+.cv-entry-desc { color: #4a5568; line-height: 1.6; font-size: 0.85rem; }
+.cv-project { background: #f7fafc; padding: 12px 15px; border-radius: 5px; margin-bottom: 12px; border-left: 3px solid #4a90d9; }
+.cv-project-title { font-weight: 700; color: #1a202c; font-size: 0.9rem; }
+.cv-project-tech { color: #4a90d9; font-size: 0.8rem; margin: 4px 0; }
+.cv-project-desc { color: #4a5568; font-size: 0.85rem; line-height: 1.5; }
+.cv-cert-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0; }
+.cv-cert-name { font-weight: 600; color: #2d3748; font-size: 0.85rem; }
+.cv-cert-date { color: #718096; font-size: 0.8rem; }
+.cv-family-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cv-family-item { background: #f7fafc; padding: 10px; border-radius: 4px; }
+.cv-family-label { font-weight: 600; color: #2c5282; font-size: 0.8rem; }
+.cv-family-value { color: #4a5568; font-size: 0.85rem; }
+.cv-declaration { background: #f7fafc; padding: 15px; border-radius: 5px; border-left: 3px solid #4a90d9; font-size: 0.85rem; color: #4a5568; line-height: 1.6; }
 
 /* Print Styles */
 @media print {
-    body { background: white; padding: 0; }
-    .form-box, .progress, header, .btns, .container > header, .container > .progress { display: none !important; }
-    .preview { display: block !important; margin: 0; }
-    .cv-paper { box-shadow: none; max-width: 100%; }
-    .cv-container { display: flex; }
-    .cv-sidebar { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .cv-sidebar-skill, .cv-hobby { background: rgba(255,255,255,0.1) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .cv-section h2 { border-bottom-color: #e94560 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .cv-entry, .cv-project, .cv-declaration { border-left-color: #e94560 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { 
+        background: white !important; 
+        padding: 0 !important; 
+        margin: 0 !important;
+        font-size: 11pt;
+    }
+    .container { 
+        max-width: 100% !important; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+    }
+    header, .progress, .form-box, .btns, .photo-area, .file-upload, .btn, .btn-add {
+        display: none !important;
+    }
+    .preview { 
+        display: block !important; 
+        margin: 0 !important; 
+        padding: 0 !important;
+    }
+    .cv-paper { 
+        box-shadow: none !important; 
+        border-radius: 0 !important; 
+        max-width: 100% !important;
+        margin: 0 !important;
+        page-break-inside: avoid;
+    }
+    .cv-body { 
+        display: flex !important; 
+    }
+    .cv-header { 
+        background: #1a365d !important; 
+        padding: 25px 30px 20px !important;
+    }
+    .cv-header-name { 
+        font-size: 22pt !important; 
+        margin-bottom: 5px !important;
+    }
+    .cv-header-title { 
+        font-size: 10pt !important; 
+        margin-bottom: 12px !important;
+    }
+    .cv-header-contact { 
+        font-size: 9pt !important; 
+        gap: 15px !important;
+    }
+    .cv-left { 
+        width: 240px !important; 
+        padding: 20px !important;
+        background: #f8fafc !important;
+    }
+    .cv-right { 
+        padding: 20px 25px !important; 
+    }
+    .cv-left-section { 
+        margin-bottom: 18px !important; 
+    }
+    .cv-left-section h3 { 
+        font-size: 9pt !important; 
+        margin-bottom: 8px !important;
+    }
+    .cv-right-section { 
+        margin-bottom: 16px !important; 
+    }
+    .cv-right-section h2 { 
+        font-size: 10pt !important; 
+        margin-bottom: 10px !important;
+    }
+    .cv-entry { 
+        margin-bottom: 10px !important; 
+    }
+    .cv-entry-title { 
+        font-size: 10pt !important; 
+    }
+    .cv-entry-sub { 
+        font-size: 9pt !important; 
+    }
+    .cv-entry-date { 
+        font-size: 8pt !important; 
+    }
+    .cv-entry-desc { 
+        font-size: 9pt !important; 
+        line-height: 1.4 !important;
+    }
+    .cv-project { 
+        padding: 8px 10px !important; 
+        margin-bottom: 8px !important;
+    }
+    .cv-project-title { 
+        font-size: 9.5pt !important; 
+    }
+    .cv-project-tech { 
+        font-size: 8pt !important; 
+    }
+    .cv-project-desc { 
+        font-size: 9pt !important; 
+    }
+    .cv-skill-item { 
+        font-size: 8pt !important; 
+        padding: 3px 8px !important;
+    }
+    .cv-hobby-item { 
+        font-size: 8pt !important; 
+        padding: 3px 8px !important;
+    }
+    .cv-contact-item { 
+        font-size: 8pt !important; 
+    }
+    .cv-lang-item { 
+        font-size: 8.5pt !important; 
+    }
+    .cv-cert-item { 
+        font-size: 9pt !important; 
+    }
+    .cv-family-grid { 
+        gap: 8px !important; 
+    }
+    .cv-family-item { 
+        padding: 6px !important; 
+    }
+    .cv-declaration { 
+        font-size: 9pt !important; 
+        padding: 10px !important;
+    }
+    .template-selector { display: none !important; }
+    
+    /* Template-specific print */
+    .template-modern .cv-header { background: #1a365d !important; }
+    .template-modern .cv-left { background: #f8fafc !important; }
+    .template-modern .cv-right-section h2, .template-modern .cv-left-section h3 { border-bottom-color: #4a90d9 !important; }
+    .template-modern .cv-project, .template-modern .cv-declaration { border-left-color: #4a90d9 !important; }
+    
+    .template-classic .cv-header { background: #2c3e50 !important; border-bottom-color: #3498db !important; }
+    .template-classic .cv-left { background: #ecf0f1 !important; }
+    .template-classic .cv-right-section h2 { border-bottom-color: #3498db !important; }
+    .template-classic .cv-left-section h3 { border-bottom-color: #bdc3c7 !important; }
+    
+    .template-minimal .cv-header { background: white !important; color: #111 !important; border-bottom-color: #111 !important; }
+    .template-minimal .cv-header-name { color: #111 !important; }
+    .template-minimal .cv-header-title { color: #666 !important; }
+    .template-minimal .cv-header-contact { color: #333 !important; }
+    
+    .template-elegant .cv-header { background: #1a1a2e !important; }
+    .template-elegant .cv-header-title { color: #e94560 !important; }
+    .template-elegant .cv-left { background: #fafafa !important; }
+    .template-elegant .cv-right-section h2, .template-elegant .cv-left-section h3 { border-bottom-color: #e94560 !important; }
+    .template-elegant .cv-project, .template-elegant .cv-declaration { border-left-color: #e94560 !important; }
 }
 </style>
 </head>
@@ -131,6 +359,17 @@ header span { color: #e94560; font-weight: 600; }
 <div class="step {% if current_step >= 6 %}active{% endif %}">7. More</div>
 <div class="step {% if current_step >= 7 %}active{% endif %}">8. Preview</div>
 </div>
+{% if current_step == 7 %}
+<div class="template-selector">
+<label>Select Template:</label>
+<div class="template-options">
+<button type="submit" name="action" value="template_modern" class="template-btn {% if cv_template == 'modern' %}active{% endif %}">Modern</button>
+<button type="submit" name="action" value="template_classic" class="template-btn {% if cv_template == 'classic' %}active{% endif %}">Classic</button>
+<button type="submit" name="action" value="template_minimal" class="template-btn {% if cv_template == 'minimal' %}active{% endif %}">Minimal</button>
+<button type="submit" name="action" value="template_elegant" class="template-btn {% if cv_template == 'elegant' %}active{% endif %}">Elegant</button>
+</div>
+</div>
+{% endif %}
 <form method="POST" enctype="multipart/form-data" class="form-box">
 <!-- Step 1: Personal Details -->
 <div class="form-section {% if current_step == 0 %}active{% endif %}">
@@ -271,66 +510,67 @@ header span { color: #e94560; font-weight: 600; }
 
 <!-- CV Preview -->
 <div class="preview {% if current_step == 7 %}active{% endif %}">
-<div class="cv-paper">
-<div class="cv-container">
-<!-- Sidebar -->
-<div class="cv-sidebar">
-<div class="cv-sidebar-photo">
-{% if data.photo %}<img src="{{ data.photo }}">{% endif %}
-</div>
-<div class="cv-sidebar-name">{{ data.name or "Your Name" }}</div>
-<div class="cv-sidebar-title">{{ data.objective or "Career Objective" }}</div>
-
-<div class="cv-sidebar-section">
-<h4> Contact</h4>
-<div class="cv-sidebar-contact">
-{% if data.email %}<span><span class="label"></span>{{ data.email }}</span>{% endif %}
-{% if data.phone %}<span><span class="label"></span>{{ data.phone }}</span>{% endif %}
-{% if data.address %}<span><span class="label"></span>{{ data.address }}</span>{% endif %}
-{% if data.linkedin %}<span><span class="label"></span>{{ data.linkedin }}</span>{% endif %}
-{% if data.github %}<span><span class="label"></span>{{ data.github }}</span>{% endif %}
-{% if data.website %}<span><span class="label"></span>{{ data.website }}</span>{% endif %}
+<div class="cv-paper template-{{ cv_template }}">
+<!-- Header -->
+<div class="cv-header">
+<div class="cv-header-name">{{ data.name or "Your Name" }}</div>
+<div class="cv-header-title">{{ data.objective or "Career Objective" }}</div>
+<div class="cv-header-contact">
+{% if data.email %}<span>✉ {{ data.email }}</span>{% endif %}
+{% if data.phone %}<span>📞 {{ data.phone }}</span>{% endif %}
+{% if data.address %}<span>📍 {{ data.address }}</span>{% endif %}
+{% if data.linkedin %}<span>🔗 LinkedIn</span>{% endif %}
+{% if data.github %}<span>💻 GitHub</span>{% endif %}
+{% if data.website %}<span>🌐 Website</span>{% endif %}
 </div>
 </div>
 
-<div class="cv-sidebar-section">
-<h4> Skills</h4>
-<div class="cv-sidebar-skills">
-{% if data.tech_skills %}{% for s in data.tech_skills.split(",") %}{% if s.strip() %}<span class="cv-sidebar-skill">{{ s.strip() }}</span>{% endif %}{% endfor %}{% endif %}
-{% if data.soft_skills %}{% for s in data.soft_skills.split(",") %}{% if s.strip() %}<span class="cv-sidebar-skill">{{ s.strip() }}</span>{% endif %}{% endfor %}{% endif %}
+<div class="cv-body">
+<!-- Left Column -->
+<div class="cv-left">
+{% if data.tech_skills or data.soft_skills %}
+<div class="cv-left-section">
+<h3>Skills</h3>
+{% if data.tech_skills %}{% for s in data.tech_skills.split(",") %}{% if s.strip() %}<span class="cv-skill-item">{{ s.strip() }}</span>{% endif %}{% endfor %}{% endif %}
+{% if data.soft_skills %}{% for s in data.soft_skills.split(",") %}{% if s.strip() %}<span class="cv-skill-item">{{ s.strip() }}</span>{% endif %}{% endfor %}{% endif %}
 </div>
+{% endif %}
+
+{% if data.email or data.phone or data.address %}
+<div class="cv-left-section">
+<h3>Contact</h3>
+{% if data.email %}<div class="cv-contact-item">{{ data.email }}</div>{% endif %}
+{% if data.phone %}<div class="cv-contact-item">{{ data.phone }}</div>{% endif %}
+{% if data.address %}<div class="cv-contact-item">{{ data.address }}</div>{% endif %}
+{% if data.linkedin %}<div class="cv-contact-item">{{ data.linkedin }}</div>{% endif %}
+{% if data.github %}<div class="cv-contact-item">{{ data.github }}</div>{% endif %}
+{% if data.website %}<div class="cv-contact-item">{{ data.website }}</div>{% endif %}
 </div>
+{% endif %}
 
 {% if data.languages %}
-<div class="cv-sidebar-section">
-<h4> Languages</h4>
-<div class="cv-sidebar-contact">
-{% for lang in data.languages.split(",") %}{% if lang.strip() %}<span>{{ lang.strip() }}</span>{% endif %}{% endfor %}
-</div>
+<div class="cv-left-section">
+<h3>Languages</h3>
+{% for lang in data.languages.split(",") %}{% if lang.strip() %}<div class="cv-lang-item">{{ lang.strip() }}</div>{% endif %}{% endfor %}
 </div>
 {% endif %}
 
 {% if data.hobbies %}
-<div class="cv-sidebar-section">
-<h4> Interests</h4>
-<div class="cv-sidebar-skills">
-{% for h in data.hobbies.split(",") %}{% if h.strip() %}<span class="cv-sidebar-skill">{{ h.strip() }}</span>{% endif %}{% endfor %}
-</div>
+<div class="cv-left-section">
+<h3>Interests</h3>
+{% for h in data.hobbies.split(",") %}{% if h.strip() %}<span class="cv-hobby-item">{{ h.strip() }}</span>{% endif %}{% endfor %}
 </div>
 {% endif %}
 </div>
 
-<!-- Main Content -->
-<div class="cv-main">
-<div class="cv-main-name">{{ data.name or "Your Name" }}</div>
-<div class="cv-main-title">{{ data.objective or "Career Objective" }}</div>
-
+<!-- Right Column -->
+<div class="cv-right">
 {% if data.summary %}
-<div class="cv-section"><h2> Professional Summary</h2><p style="line-height:1.7;color:#555;">{{ data.summary }}</p></div>
+<div class="cv-right-section"><h2>Professional Summary</h2><p style="line-height:1.7;color:#4a5568;">{{ data.summary }}</p></div>
 {% endif %}
 
 {% if data.grad_degree or data.twelve_school or data.ten_school %}
-<div class="cv-section"><h2> Education</h2>
+<div class="cv-right-section"><h2>Education</h2>
 {% if data.grad_degree %}
 <div class="cv-entry">
 <div class="cv-entry-title">{{ data.grad_degree }}</div>
@@ -356,7 +596,7 @@ header span { color: #e94560; font-weight: 600; }
 {% endif %}
 
 {% if data.experience %}
-<div class="cv-section"><h2> Experience</h2>
+<div class="cv-right-section"><h2>Experience</h2>
 {% for job in data.experience %}
 <div class="cv-entry">
 <div class="cv-entry-title">{{ job.title }}</div>
@@ -369,7 +609,7 @@ header span { color: #e94560; font-weight: 600; }
 {% endif %}
 
 {% if data.projects %}
-<div class="cv-section"><h2> Projects</h2>
+<div class="cv-right-section"><h2>Projects</h2>
 {% for proj in data.projects %}
 <div class="cv-project">
 <div class="cv-project-title">{{ proj.title }}</div>
@@ -381,7 +621,7 @@ header span { color: #e94560; font-weight: 600; }
 {% endif %}
 
 {% if data.certifications %}
-<div class="cv-section"><h2> Certifications</h2>
+<div class="cv-right-section"><h2>Certifications</h2>
 {% for cert in data.certifications.split(chr(10)) %}{% if cert.strip() %}
 {% set parts = cert.split(" - ") %}
 <div class="cv-cert-item">
@@ -393,7 +633,7 @@ header span { color: #e94560; font-weight: 600; }
 {% endif %}
 
 {% if data.achievements %}
-<div class="cv-section"><h2> Achievements</h2>
+<div class="cv-right-section"><h2>Achievements</h2>
 {% for ach in data.achievements.split(chr(10)) %}{% if ach.strip() %}
 <div class="cv-entry"><div class="cv-entry-desc">{{ ach }}</div></div>
 {% endif %}{% endfor %}
@@ -401,8 +641,8 @@ header span { color: #e94560; font-weight: 600; }
 {% endif %}
 
 {% if data.father_name or data.mother_name %}
-<div class="cv-section"><h2> Family Details</h2>
-<div class="cv-family-section">
+<div class="cv-right-section"><h2>Family Details</h2>
+<div class="cv-family-grid">
 {% if data.father_name %}<div class="cv-family-item"><div class="cv-family-label">Father</div><div class="cv-family-value">{{ data.father_name }}</div></div>{% endif %}
 {% if data.mother_name %}<div class="cv-family-item"><div class="cv-family-label">Mother</div><div class="cv-family-value">{{ data.mother_name }}</div></div>{% endif %}
 </div>
@@ -410,12 +650,10 @@ header span { color: #e94560; font-weight: 600; }
 {% endif %}
 
 {% if data.declaration %}
-<div class="cv-section"><h2> Declaration</h2>
+<div class="cv-right-section"><h2>Declaration</h2>
 <div class="cv-declaration">{{ data.declaration }}</div>
 </div>
 {% endif %}
-</div>
-</div>
 </div>
 </div>
 </div>
@@ -449,22 +687,102 @@ function previewPhoto(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+function validateForm() {
+    let isValid = true;
+    const errors = [];
+    
+    // Clear previous errors
+    document.querySelectorAll('.form-group').forEach(g => g.classList.remove('error'));
+    document.querySelectorAll('.form-error-banner').forEach(e => e.remove());
+    
+    // Get current step fields
+    const currentStep = {{ current_step }};
+    
+    if (currentStep === 0) {
+        // Step 1: Personal Details - validate required fields
+        const name = document.querySelector('input[name="name"]');
+        const email = document.querySelector('input[name="email"]');
+        const phone = document.querySelector('input[name="phone"]');
+        
+        if (!name.value.trim()) {
+            name.parentElement.classList.add('error');
+            name.parentElement.insertAdjacentHTML('beforeend', '<div class="error-message">Name is required</div>');
+            errors.push('Name is required');
+            isValid = false;
+        }
+        
+        if (!email.value.trim()) {
+            email.parentElement.classList.add('error');
+            email.parentElement.insertAdjacentHTML('beforeend', '<div class="error-message">Email is required</div>');
+            errors.push('Email is required');
+            isValid = false;
+        } else if (!isValidEmail(email.value)) {
+            email.parentElement.classList.add('error');
+            email.parentElement.insertAdjacentHTML('beforeend', '<div class="error-message">Please enter a valid email</div>');
+            errors.push('Invalid email format');
+            isValid = false;
+        }
+        
+        if (!phone.value.trim()) {
+            phone.parentElement.classList.add('error');
+            phone.parentElement.insertAdjacentHTML('beforeend', '<div class="error-message">Phone is required</div>');
+            errors.push('Phone is required');
+            isValid = false;
+        }
+    }
+    
+    if (!isValid) {
+        // Show error banner
+        const formBox = document.querySelector('.form-box');
+        const banner = document.createElement('div');
+        banner.className = 'form-error-banner';
+        banner.textContent = 'Please fill in all required fields correctly';
+        formBox.insertBefore(banner, formBox.firstChild);
+        return false;
+    }
+    
+    return true;
+}
+
+function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+// Add validation to form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const action = document.querySelector('button[name="action"]:focused')?.value || 
+                   document.activeElement?.value;
+    if (action === 'next' && !validateForm()) {
+        e.preventDefault();
+    }
+});
 </script>
 </body>
 </html>"""
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    global cv_data, current_step
+    global cv_data, current_step, cv_template
     if request.method == "GET":
         current_step = 0
         cv_data = {}
+        cv_template = "modern"
     if request.method == "POST":
         action = request.form.get("action", "")
         if action == "next":
             current_step = min(current_step + 1, 7)
         elif action == "prev":
             current_step = max(current_step - 1, 0)
+        elif action == "template_modern":
+            cv_template = "modern"
+        elif action == "template_classic":
+            cv_template = "classic"
+        elif action == "template_minimal":
+            cv_template = "minimal"
+        elif action == "template_elegant":
+            cv_template = "elegant"
         
         cv_data = {
             "name": request.form.get("name", ""),
@@ -557,7 +875,7 @@ def index():
             conn.commit()
             conn.close()
     
-    return render_template_string(TEMPLATE, data=cv_data, current_step=current_step)
+    return render_template_string(TEMPLATE, data=cv_data, current_step=current_step, cv_template=cv_template)
 
 if __name__ == "__main__":
  import os
