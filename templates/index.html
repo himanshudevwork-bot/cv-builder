@@ -12,6 +12,7 @@
         }
         
         body {
+           
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
@@ -348,6 +349,12 @@
     </style>
 </head>
 <body>
+
+<input type="file" id="photo" accept="image/*">
+
+<br><br>
+
+<img id="previewImg" width="150" style="display:none;">
     <header>
         <h1>{{ info.name }}</h1>
         <p>{{ info.title }}</p>
@@ -467,5 +474,54 @@
     <footer>
         <p>&copy; 2026 {{ info.name }}. All rights reserved.</p>
     </footer>
+    <div class="project-grid">
+
+  <div class="project-card" onclick="selectTemplate('Template 1')">
+    Template 1
+  </div>
+
+  <div class="project-card" onclick="selectTemplate('Template 2')">
+    Template 2
+  </div>
+
+</div>
+
+<div id="preview" style="margin-top:20px; font-size:18px;"></div>
+
+<script>
+function selectTemplate(template) {
+    console.log("clicked:", template);
+
+    document.getElementById("preview").innerText =
+        "Selected Template: " + template;
+}
+</script>
+<script>
+let uploadedImage = "";
+
+window.onload = function() {
+
+    const photoInput = document.getElementById("photo");
+
+    photoInput.addEventListener("change", function(event) {
+        const file = event.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                uploadedImage = e.target.result;
+
+                const img = document.getElementById("previewImg");
+                img.src = uploadedImage;
+                img.style.display = "block";
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+};
+</script>
 </body>
 </html>

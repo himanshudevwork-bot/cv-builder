@@ -359,6 +359,7 @@ header span { color: #4a90d9; font-weight: 700; }
 <div class="step {% if current_step >= 6 %}active{% endif %}">7. More</div>
 <div class="step {% if current_step >= 7 %}active{% endif %}">8. Preview</div>
 </div>
+<form method="POST" enctype="multipart/form-data" class="form-box">
 {% if current_step == 7 %}
 <div class="template-selector">
 <label>Select Template:</label>
@@ -370,7 +371,6 @@ header span { color: #4a90d9; font-weight: 700; }
 </div>
 </div>
 {% endif %}
-<form method="POST" enctype="multipart/form-data" class="form-box">
 <!-- Step 1: Personal Details -->
 <div class="form-section {% if current_step == 0 %}active{% endif %}">
 <h3> Personal Details</h3>
